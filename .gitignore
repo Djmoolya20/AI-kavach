@@ -1,1 +1,28 @@
-"node_modules/\n__pycache__/\n.env\n.next/" 
+# Python (backend)
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Environment variables (secrets)
+.env
+.env.local
+.env.*.local
+
+# Node / JS frontend (covers React, Next.js, Vue, plain JS w/ npm)
+node_modules/
+.next/
+dist/
+build/
+
+# Editor / OS junk
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
