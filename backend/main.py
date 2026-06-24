@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from schemas import AgentPayload
+from security_core import evaluate_prompt
 
 app = FastAPI()
 
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -12,12 +14,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Home Route
 @app.get("/")
 def home():
     return {
         "message": "AI Kavach Backend Running"
     }
 
+# Test Route
 @app.post("/test")
 def test(payload: AgentPayload):
     return {
@@ -25,16 +29,7 @@ def test(payload: AgentPayload):
         "query": payload.user_query
     }
 
+# Security Evaluation Route
 @app.post("/v1/proxy/evaluate")
 def evaluate(payload: AgentPayload):
-
-    if "password" in payload.user_query.lower():
-        return {
-            "status": "BLOCKED",
-            "reason": "Sensitive information request detected"
-        }
-
-    return {
-        "status": "SAFE",
-        "reason": "No threat detected"
-    }
+    return evaluate_prompt(payload.user_query)
