@@ -61,7 +61,46 @@ def check_via_proxy(prompt: str, timeout_seconds: float = 5.0) -> dict:
     (test_b_jailbreak.py, test_c_data_exfiltration.py) without converting
     them to async code.
     """
-    return asyncio.run(check_via_proxy_async(prompt, timeout_seconds))
+    raw = asyncio.run(check_via_proxy_async(prompt, timeout_seconds))
+    return normalize_proxy_response(raw)
+
+
+def normalize_proxy_response(raw: dict) -> dict:
+    """
+    Member 2's security_core.py has two possible output shapes depending
+    on which version is deployed:
+      - OLD format: {"status": "BLOCKED"/"SAFE", "reason": "...", ...}
+      - NEW format: {"flagged": True/False, "reason": "...",
+                      "similarity_score": ..., "confidence": "...%"}
+
+    This function normalizes either shape into one consistent dict so the
+    rest of this file (and the test scripts) only ever need to check for
+    "status". If main.py's evaluate_prompt() wrapper is in place, you'll
+    always get the OLD format already - this is just a safety net in case
+    that wrapper is removed or a raw evaluate() call reaches here directly.
+    """
+    if "status" in raw:
+        # Already old format - pass through, just ensure expected keys exist
+        return {
+            "status": raw.get("status"),
+            "reason": raw.get("reason"),
+            "raw": raw,
+        }
+    elif "flagged" in raw:
+        # New format - translate flagged (bool) into status (string)
+        return {
+            "status": "BLOCKED" if raw.get("flagged") else "SAFE",
+            "reason": raw.get("reason"),
+            "raw": raw,
+        }
+    else:
+        # Unknown shape - don't guess, surface it as an error so it's
+        # obvious something changed rather than silently misclassifying
+        return {
+            "status": "ERROR",
+            "reason": f"Unrecognized proxy response shape: {raw}",
+            "raw": raw,
+        }
 
 
 def run_through_proxy_then_agent(prompt: str) -> dict:
