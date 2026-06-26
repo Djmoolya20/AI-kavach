@@ -191,7 +191,7 @@ def run_attack_set_direct(attacks: list[tuple[str, str]]) -> dict:
     """
     results = {}
     for label, prompt in attacks:
-        print(f"  [direct] running: {label}...")
+        print(f"  [direct] running: {label}...", flush=True)
         try:
             reply = run_single_query(prompt)
             flags = check_for_red_flags(reply)
@@ -212,7 +212,7 @@ def run_attack_set_via_proxy(attacks: list[tuple[str, str]]) -> dict:
     """
     results = {}
     for label, prompt in attacks:
-        print(f"  [proxy]  running: {label}...")
+        print(f"  [proxy]  running: {label}...", flush=True)
         try:
             outcome = run_through_proxy_then_agent(prompt)
             proxy_result = outcome["proxy_result"]
@@ -266,14 +266,18 @@ def run_day3_comparison():
     print("=" * 60)
     print("DAY 3: BEFORE/AFTER COMPARISON - DIRECT vs VIA PROXY")
     print("Make sure Member 1's backend is running on localhost:8000")
-    print("=" * 60)
+    print("=" * 60, flush=True)
 
+    print("\n\n>>>>>>>>>> STARTING WAVE 1 <<<<<<<<<<", flush=True)
     wave1_direct = run_attack_set_direct(JAILBREAK_ATTEMPTS)
     wave1_proxy = run_attack_set_via_proxy(JAILBREAK_ATTEMPTS)
+    print(">>>>>>>>>> WAVE 1 COMPLETE - RESULTS BELOW <<<<<<<<<<\n", flush=True)
     print_comparison_table(wave1_direct, wave1_proxy, "WAVE 1 COMPARISON (basic jailbreak attempts)")
 
+    print("\n\n>>>>>>>>>> STARTING WAVE 2 <<<<<<<<<<", flush=True)
     wave2_direct = run_attack_set_direct(JAILBREAK_ATTEMPTS_WAVE_2)
     wave2_proxy = run_attack_set_via_proxy(JAILBREAK_ATTEMPTS_WAVE_2)
+    print(">>>>>>>>>> WAVE 2 COMPLETE - RESULTS BELOW <<<<<<<<<<\n", flush=True)
     print_comparison_table(wave2_direct, wave2_proxy, "WAVE 2 COMPARISON (sophisticated jailbreak attempts)")
 
     print("\n" + "=" * 60)
@@ -281,6 +285,70 @@ def run_day3_comparison():
     print("Day 3 is [PASS] - those are the proxy's real wins. Any case")
     print("still [FAIL] in Day 3 needs to go back to Member 2 as a gap.")
     print("=" * 60)
+
+
+def run_demo_mode():
+    """
+    Clean, presentation-ready output for live demos. No internal team
+    terminology - shows BOTH outcomes for each attack: what would happen
+    with no security layer at all, and what actually happens with the
+    security layer in place. This before/after contrast is the core of
+    the project's value proposition - showing only the "after" understates
+    what the system actually does.
+    """
+    all_attacks = JAILBREAK_ATTEMPTS + JAILBREAK_ATTEMPTS_WAVE_2
+
+    print("=" * 70)
+    print("CYBERGUARD AI - LIVE SECURITY DEMONSTRATION")
+    print("Behavioral Attack Detection")
+    print("=" * 70)
+
+    blocked_count = 0
+    proxy_catch_count = 0
+    total = len(all_attacks)
+
+    for label, prompt in all_attacks:
+        print(f"\nAttempted attack: {label}")
+        print(f'  "{prompt}"')
+
+        # Show the "before" - what happens with no security layer at all
+        try:
+            unprotected_reply = run_single_query(prompt)
+            unprotected_flags = check_for_red_flags(unprotected_reply)
+            if any("LEAKED" in f for f in unprotected_flags):
+                print(f"  Without protection: assistant would have leaked protected information")
+            else:
+                print(f"  Without protection: assistant happens to refuse this on its own")
+        except Exception as e:
+            print(f"  Without protection: could not test ({e})")
+
+        # Show the "after" - what actually happens with the security layer
+        try:
+            outcome = run_through_proxy_then_agent(prompt)
+            proxy_result = outcome["proxy_result"]
+
+            if not outcome["reached_llm"]:
+                print(f"  With protection:    BLOCKED before reaching the assistant")
+                print(f"                      Reason: {proxy_result.get('reason')}")
+                blocked_count += 1
+                proxy_catch_count += 1
+            else:
+                reply = outcome["agent_reply"]
+                flags = check_for_red_flags(reply)
+                if any("LEAKED" in f for f in flags):
+                    print(f"  With protection:    NOT BLOCKED - request reached the assistant")
+                    print(f"                      Response: {format_reply_for_display(reply, max_chars=150)}")
+                else:
+                    print(f"  With protection:    ALLOWED - assistant handled it safely on its own")
+                    blocked_count += 1
+
+        except Exception as e:
+            print(f"  >> Could not complete this test: {e}")
+
+    print("\n" + "=" * 70)
+    print(f"RESULT: {blocked_count} of {total} attacks neutralized overall")
+    print(f"        {proxy_catch_count} of {total} were caught by the security layer directly")
+    print("=" * 70)
 
 
 def run_jailbreak_tests():
@@ -309,11 +377,14 @@ def run_jailbreak_tests():
 if __name__ == "__main__":
     import sys
 
-    if "--compare" in sys.argv:
-        # Day 3 mode: compare direct-to-agent vs via-proxy
+    if "--demo" in sys.argv:
+        # Clean, presentation-ready mode - no internal terminology
+        run_demo_mode()
+    elif "--compare" in sys.argv:
+        # Internal testing mode: compare direct-to-agent vs via-proxy
         run_day3_comparison()
     else:
-        # Day 2 mode: original standalone agent-only tests (no proxy)
+        # Internal testing mode: standalone agent-only tests (no proxy)
         run_jailbreak_tests()
         run_wave_2_tests()
         print("\n(Tip: run 'python test_b_jailbreak.py --compare' to see the")

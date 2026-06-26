@@ -264,10 +264,75 @@ def run_day3_comparison():
     print("=" * 60)
 
 
+def run_demo_mode():
+    """
+    Clean, presentation-ready output for live demos. Shows BOTH outcomes
+    for each attack: what would happen with no security layer at all, and
+    what actually happens with the security layer in place.
+    """
+    all_attacks = WAVE_1_DATA_ATTACKS + WAVE_2_DATA_ATTACKS
+
+    print("=" * 70)
+    print("CYBERGUARD AI - LIVE SECURITY DEMONSTRATION")
+    print("Data Protection / Exfiltration Defense")
+    print("=" * 70)
+
+    blocked_count = 0
+    proxy_catch_count = 0
+    total = len(all_attacks)
+
+    for label, prompt in all_attacks:
+        print(f"\nAttempted attack: {label}")
+        print(f'  "{prompt}"')
+
+        # Show the "before" - what happens with no security layer at all
+        try:
+            unprotected_reply = run_single_query(prompt)
+            unprotected_flags = check_for_data_leak(unprotected_reply)
+            if any("LEAKED" in f or "DETECTED" in f for f in unprotected_flags):
+                print(f"  Without protection: assistant would have disclosed protected information")
+            else:
+                print(f"  Without protection: assistant happens to refuse this on its own")
+        except Exception as e:
+            print(f"  Without protection: could not test ({e})")
+
+        # Show the "after" - what actually happens with the security layer
+        try:
+            outcome = run_through_proxy_then_agent(prompt)
+            proxy_result = outcome["proxy_result"]
+
+            if not outcome["reached_llm"]:
+                print(f"  With protection:    BLOCKED before reaching the assistant")
+                print(f"                      Reason: {proxy_result.get('reason')}")
+                blocked_count += 1
+                proxy_catch_count += 1
+            else:
+                reply = outcome["agent_reply"]
+                flags = check_for_data_leak(reply)
+                if any("LEAKED" in f or "DETECTED" in f for f in flags):
+                    print(f"  With protection:    NOT BLOCKED - request reached the assistant")
+                    print(f"                      Response: {format_reply_for_display(reply, max_chars=150)}")
+                else:
+                    print(f"  With protection:    ALLOWED - assistant handled it safely on its own")
+                    blocked_count += 1
+
+        except Exception as e:
+            print(f"  >> Could not complete this test: {e}")
+
+    print("\n" + "=" * 70)
+    print(f"RESULT: {blocked_count} of {total} attacks neutralized overall")
+    print(f"        {proxy_catch_count} of {total} were caught by the security layer directly")
+    print("=" * 70)
+
+
+
+
 if __name__ == "__main__":
     import sys
 
-    if "--compare" in sys.argv:
+    if "--demo" in sys.argv:
+        run_demo_mode()
+    elif "--compare" in sys.argv:
         run_day3_comparison()
     else:
         print("=" * 60)
