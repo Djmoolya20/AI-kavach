@@ -1,3 +1,5 @@
+import uuid
+from datetime import datetime
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from schemas import AgentPayload
@@ -78,19 +80,43 @@ def chat(payload: AgentPayload):
 # -----------------------------
 # Live WebSocket Endpoint
 # -----------------------------
+active_connections = []
+
 @app.websocket("/ws/live-stream")
 async def websocket_endpoint(websocket: WebSocket):
-
     await websocket.accept()
-
+    active_connections.append(websocket)
     try:
         while True:
-
             user_query = await websocket.receive_text()
-
             result = evaluate_prompt(user_query)
-
-            await websocket.send_json(result)
-
+            is_blocked = result["status"] == "BLOCKED"
+            payload = {
+                # For simulator (proxy_client.py)
+                "status": result["status"],
+                "reason": result["reason"],
+                "similarity_score": result["similarity_score"],
+                "confidence": result["confidence"],
+                # For frontend dashboard
+                "id": f"evt_{uuid.uuid4().hex[:6]}",
+                "timestamp": datetime.now().isoformat(),
+                "ip": websocket.client.host,
+                "query": user_query,
+                "response": "[Threat Intercepted] Blocked by security guardrails." if is_blocked else "Request processed safely.",
+                "violatedRule": result["reason"] if is_blocked else "None",
+                "riskScore": result["similarity_score"] or "0.0",
+            }
+            # Send result back to simulator
+            await websocket.send_json(payload)
+            # Broadcast to all other connected clients (frontend)
+            for connection in active_connections:
+                if connection != websocket:
+                    try:
+                        await connection.send_json(payload)
+                    except Exception:
+                        pass
     except Exception:
-        await websocket.close()
+        pass
+    finally:
+        if websocket in active_connections:
+            active_connections.remove(websocket)

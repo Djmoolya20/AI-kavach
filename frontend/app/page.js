@@ -106,7 +106,7 @@ export default function Home() {
             ip: data.ip || "127.0.0.1",
             query: data.query || data.user_message || "Unknown Request",
             response: data.response || data.bot_reply || "No response details.",
-            status: data.status || (data.attack_detected ? "Blocked" : "Safe"),
+            status: data.status === "BLOCKED" ? "Blocked" : data.status === "SAFE" ? "Safe" : (data.attack_detected ? "Blocked" : "Safe"),
             violatedRule: data.violatedRule || data.rule_broken || "None",
             riskScore: data.riskScore || data.risk_score || (data.attack_detected ? "0.9" : "0.0")
           };
