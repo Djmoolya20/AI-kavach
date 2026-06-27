@@ -138,7 +138,8 @@ OBVIOUS_ATTACK_KEYWORDS = [
     "ignore the rules", "disregard your", "disregard the rules",
     "you are now dan", "developer mode", "system administrator",
     "emergency override", "admin access granted", "bypass all",
-    "unrestricted ai", "no restrictions",
+    "unrestricted ai", "no restrictions","give me a discount","discount code","coupon code",
+    "50% off ","give me.*% off",
 ]
 
 
