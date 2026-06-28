@@ -3,44 +3,124 @@
 /*
  * THEME VARIABLES
  * --------------------------------------------------------
- * Tailwind v4 uses CSS-first config (no tailwind.config.js needed for
- * this). Dark mode here is driven by the "dark" class on <html>, which
- * ThemeProvider.jsx toggles. The block below defines BOTH light and dark
- * variable sets - :root is the light (default) set, and .dark overrides
- * them when that class is present.
+ * Dark mode is driven by the "dark" class on <html>.
+ * :root = light theme  |  .dark = dark theme
+ *
+ * Light palette: soft blue-tinted whites and slates for a calm,
+ * professional security dashboard feel.
  */
 
 :root {
-  --background: #f8fafc;
+  /* Page background — very slightly blue-tinted white */
+  --background: #f0f4f8;
+  /* Main text — deep navy, not harsh black */
   --foreground: #0f172a;
-
+  /* Cards / panels — pure white */
   --panel: #ffffff;
-  --panel-border: #e2e8f0;
-  --muted-foreground: #64748b;
+  /* Borders — soft blue-grey */
+  --panel-border: #cbd5e1;
+  /* Secondary / muted text */
+  --muted-foreground: #475569;
 
-  --scrollbar-track: #f1f5f9;
-  --scrollbar-thumb: #cbd5e1;
-  --scrollbar-thumb-hover: #94a3b8;
+  /* Interactive surfaces */
+  --surface-hover: #e8eef5;
+  --surface-active: #dde6f0;
+
+  /* Accent tints for status chips in light mode */
+  --red-surface:     #fff1f2;
+  --red-border:      #fecdd3;
+  --red-text:        #be123c;
+
+  --emerald-surface: #f0fdf4;
+  --emerald-border:  #bbf7d0;
+  --emerald-text:    #15803d;
+
+  --blue-surface:    #eff6ff;
+  --blue-border:     #bfdbfe;
+  --blue-text:       #1d4ed8;
+
+  --amber-surface:   #fffbeb;
+  --amber-border:    #fde68a;
+  --amber-text:      #b45309;
+
+  --purple-surface:  #faf5ff;
+  --purple-border:   #e9d5ff;
+  --purple-text:     #7e22ce;
+
+  /* Scrollbars */
+  --scrollbar-track: #e2e8f0;
+  --scrollbar-thumb: #94a3b8;
+  --scrollbar-thumb-hover: #64748b;
+
+  /* Code / mono text areas */
+  --code-bg: #f1f5f9;
+  --code-border: #cbd5e1;
+  --code-text: #1e293b;
+
+  /* Table row hover */
+  --row-hover: #e8eef5;
+  --row-selected: #dde6f0;
+
+  /* Sidebar */
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #cbd5e1;
+
+  /* Input placeholder */
+  --placeholder: #94a3b8;
 }
 
 .dark {
   --background: #060a13;
   --foreground: #f8fafc;
-
   --panel: #0f172a;
   --panel-border: #1e293b;
   --muted-foreground: #94a3b8;
 
+  --surface-hover: #1e293b;
+  --surface-active: #263347;
+
+  --red-surface:     rgba(127,29,29,0.25);
+  --red-border:      #7f1d1d;
+  --red-text:        #f87171;
+
+  --emerald-surface: rgba(6,78,59,0.25);
+  --emerald-border:  #064e3b;
+  --emerald-text:    #34d399;
+
+  --blue-surface:    rgba(30,58,138,0.2);
+  --blue-border:     #1e3a8a;
+  --blue-text:       #60a5fa;
+
+  --amber-surface:   rgba(120,53,15,0.25);
+  --amber-border:    #78350f;
+  --amber-text:      #fbbf24;
+
+  --purple-surface:  rgba(88,28,135,0.25);
+  --purple-border:   #581c87;
+  --purple-text:     #c084fc;
+
   --scrollbar-track: #060a13;
   --scrollbar-thumb: #1e293b;
   --scrollbar-thumb-hover: #334155;
+
+  --code-bg: #060a13;
+  --code-border: #1e293b;
+  --code-text: #e2e8f0;
+
+  --row-hover: rgba(30,41,59,0.5);
+  --row-selected: rgba(30,41,59,0.85);
+
+  --sidebar-bg: #0f172a;
+  --sidebar-border: #1e293b;
+
+  --placeholder: #475569;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-panel: var(--panel);
-  --color-panel-border: var(--panel-border);
+  --color-background:       var(--background);
+  --color-foreground:       var(--foreground);
+  --color-panel:            var(--panel);
+  --color-panel-border:     var(--panel-border);
   --color-muted-foreground: var(--muted-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -51,31 +131,100 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
-  /* Smooth, subtle transition when toggling - avoids a harsh instant flip */
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Cyber-security glowing and slide animations (unchanged - these work
-   identically in both themes since they're accent-color based, not
-   background-based) */
+/* ── Theme-aware utility classes ────────────────────────────── */
+
+/* Text levels */
+.text-primary   { color: var(--foreground); }
+.text-secondary { color: var(--muted-foreground); }
+
+/* Status chips — red */
+.chip-red {
+  background: var(--red-surface);
+  border: 1px solid var(--red-border);
+  color: var(--red-text);
+}
+/* Status chips — emerald */
+.chip-emerald {
+  background: var(--emerald-surface);
+  border: 1px solid var(--emerald-border);
+  color: var(--emerald-text);
+}
+/* Status chips — blue */
+.chip-blue {
+  background: var(--blue-surface);
+  border: 1px solid var(--blue-border);
+  color: var(--blue-text);
+}
+/* Status chips — amber */
+.chip-amber {
+  background: var(--amber-surface);
+  border: 1px solid var(--amber-border);
+  color: var(--amber-text);
+}
+/* Status chips — purple */
+.chip-purple {
+  background: var(--purple-surface);
+  border: 1px solid var(--purple-border);
+  color: var(--purple-text);
+}
+
+/* Code / mono display areas */
+.code-block {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  color: var(--code-text);
+}
+
+/* Sidebar nav active states */
+.nav-active-blue {
+  background: var(--blue-surface);
+  color: var(--blue-text);
+  border: 1px solid var(--blue-border);
+}
+.nav-active-red {
+  background: var(--red-surface);
+  color: var(--red-text);
+  border: 1px solid var(--red-border);
+}
+.nav-inactive {
+  color: var(--muted-foreground);
+}
+.nav-inactive:hover {
+  background: var(--surface-hover);
+  color: var(--foreground);
+}
+
+/* Table rows */
+.table-row-hover:hover {
+  background: var(--row-hover);
+}
+.table-row-selected {
+  background: var(--row-selected);
+}
+
+/* Interactive buttons — secondary style */
+.btn-secondary {
+  background: var(--surface-hover);
+  border: 1px solid var(--panel-border);
+  color: var(--muted-foreground);
+}
+.btn-secondary:hover {
+  background: var(--surface-active);
+  color: var(--foreground);
+}
+
+/* ── Animations (accent-based, theme-agnostic) ───────────────── */
 @keyframes pulse-red-glow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.2);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50%       { box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.2); }
 }
-
 @keyframes pulse-green-glow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 15px 5px rgba(16, 185, 129, 0.2);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50%       { box-shadow: 0 0 15px 5px rgba(16, 185, 129, 0.2); }
 }
-
 @keyframes threat-flash {
   0%, 100% {
     background-color: rgba(239, 68, 68, 0.05);
@@ -86,50 +235,18 @@ body {
     border-color: rgba(239, 68, 68, 0.6);
   }
 }
-
 @keyframes slide-in-row {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.animate-pulse-red {
-  animation: pulse-red-glow 2s infinite;
-}
+.animate-pulse-red    { animation: pulse-red-glow 2s infinite; }
+.animate-pulse-green  { animation: pulse-green-glow 2s infinite; }
+.animate-threat-flash { animation: threat-flash 1.5s ease-in-out infinite; }
+.animate-slide-in     { animation: slide-in-row 0.35s cubic-bezier(0.16,1,0.3,1) forwards; }
 
-.animate-pulse-green {
-  animation: pulse-green-glow 2s infinite;
-}
-
-.animate-threat-flash {
-  animation: threat-flash 1.5s ease-in-out infinite;
-}
-
-.animate-slide-in {
-  animation: slide-in-row 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Custom scrollbars - now theme-aware via CSS variables instead of
-   hardcoded hex values */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-}
+/* ── Custom scrollbars (theme-aware) ─────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }

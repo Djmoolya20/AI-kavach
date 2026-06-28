@@ -29,11 +29,12 @@ export default function RootLayout({ children }) {
     >
       <head>
         {/*
-          Runs before React hydrates or anything paints. Reads the saved
-          theme (or falls back to system preference) and sets the "dark"
-          class immediately - this is what ThemeProvider.jsx reads on
-          mount, so there's no flash between "wrong default" and "correct
-          saved theme."
+          Runs before React hydrates or anything paints.
+          - If the user has a saved preference, honour it.
+          - If no saved preference, check system preference.
+          - Default fallback is LIGHT (no "dark" class added),
+            which matches our :root CSS variable set.
+          This prevents any flash between wrong default and correct theme.
         */}
         <script
           dangerouslySetInnerHTML={{
@@ -41,15 +42,19 @@ export default function RootLayout({ children }) {
               (function () {
                 try {
                   var saved = localStorage.getItem("ai-kavach-theme");
-                  var isDark =
-                    saved === "dark" ||
-                    (saved !== "light" &&
-                      !window.matchMedia("(prefers-color-scheme: light)").matches);
-                  if (isDark) {
+                  if (saved === "dark") {
                     document.documentElement.classList.add("dark");
+                  } else if (saved === "light") {
+                    // explicitly light — do nothing (no dark class)
+                  } else {
+                    // No saved preference — use system preference
+                    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                      document.documentElement.classList.add("dark");
+                    }
+                    // else: stay light (default :root variables)
                   }
                 } catch (e) {
-                  document.documentElement.classList.add("dark");
+                  // localStorage blocked — stay light (safe default)
                 }
               })();
             `,
